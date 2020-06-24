@@ -44,7 +44,7 @@
 
 6. 获取运行时限制：
 
-	```
+	```c
 	#include<unistd.h>
 	long sysconf(int name); 
 	long pathconf(const char*pathname,int name);

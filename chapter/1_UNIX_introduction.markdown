@@ -60,7 +60,7 @@
 
 2. `strerror/perror`函数:用于处理错误信息
 
-	```
+	```c
 	#include<string.h>
 	char *strerror(int errnum);
 	#include<stdio.h>

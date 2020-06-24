@@ -17,7 +17,7 @@
 
 2. 获取进程的标识符：
 
-	```
+	```c
 	#include<unistd.h>
 	pid_t getpid(void);  // 返回值：调用进程的进程ID
 	pid_t getppid(void); // 返回值：调用进程的父进程ID
@@ -30,25 +30,25 @@
 
 3. 示例：在`main`函数中调用`test_progress_id`函数：
 
-	```
-void test_progress_id()
-{
-    M_TRACE("---------  Begin test_progress_id()  ---------\n");
-    printf("progress ids:\n");
-    printf("\t progress id:%d\n",getpid());
-    printf("\t parent progress id:%d\n",getppid());
-    printf("\t user id:%d\n",getuid());
-    printf("\t efficient user id:%d\n",geteuid());
-    printf("\t group id:%d\n",getgid());
-    printf("\t efficient group id:%d\n",getegid());
-    M_TRACE("---------  End test_progress_id()  ---------\n\n");
-}
+	```c
+	void test_progress_id()
+	{
+		M_TRACE("---------  Begin test_progress_id()  ---------\n");
+		printf("progress ids:\n");
+		printf("\t progress id:%d\n",getpid());
+		printf("\t parent progress id:%d\n",getppid());
+		printf("\t user id:%d\n",getuid());
+		printf("\t efficient user id:%d\n",geteuid());
+		printf("\t group id:%d\n",getgid());
+		printf("\t efficient group id:%d\n",getegid());
+		M_TRACE("---------  End test_progress_id()  ---------\n\n");
+	}
 	```
 	![ids](../imgs/progress_control/progress_id.JPG)
 
 4. `fork`函数：创建一个新进程
 
-	```
+	```c
 	#include<unistd.h>
 	pid_t fork(void);
 	```
@@ -92,40 +92,40 @@ void test_progress_id()
 
 5. 示例： 在`main`函数中调用`test_fork` 函数：
 
-	```
-void test_fork()
-{
-    M_TRACE("---------  Begin test_fork()  ---------\n");
-    assert(prepare_file("test","abc",3,S_IRWXU)==0);
-    int fd=My_open("test",O_RDWR);
-    if(-1==fd)
-    {
-        un_prepare_file("test");
-        M_TRACE("---------  End test_fork()  ---------\n\n");
-        return;
-    }
-    //****** 打开文件成功 *************//
-    pid_t id=fork();
-    if(0==id)
-    { // child 1
-        prgress_func(fd,"**********In Child 1***********");
-        _exit(0);
-    }
-    sleep(2); // 确保父进程在子进程之后执行
-    id=fork();
-    printf("This is in the second fork\n");
-    if(0==id)
-    {// child 2
-        prgress_func(fd,"**********In Child 2***********");
-        _exit(0);
-    }
-    sleep(2);  // 确保父进程在子进程之后执行
-    prgress_func(fd,"**********In Parent***********");
+	```c
+	void test_fork()
+	{
+		M_TRACE("---------  Begin test_fork()  ---------\n");
+		assert(prepare_file("test","abc",3,S_IRWXU)==0);
+		int fd=My_open("test",O_RDWR);
+		if(-1==fd)
+		{
+			un_prepare_file("test");
+			M_TRACE("---------  End test_fork()  ---------\n\n");
+			return;
+		}
+		//****** 打开文件成功 *************//
+		pid_t id=fork();
+		if(0==id)
+		{ // child 1
+			prgress_func(fd,"**********In Child 1***********");
+			_exit(0);
+		}
+		sleep(2); // 确保父进程在子进程之后执行
+		id=fork();
+		printf("This is in the second fork\n");
+		if(0==id)
+		{// child 2
+			prgress_func(fd,"**********In Child 2***********");
+			_exit(0);
+		}
+		sleep(2);  // 确保父进程在子进程之后执行
+		prgress_func(fd,"**********In Parent***********");
 
-    close(fd);
-    un_prepare_file("test");
-    M_TRACE("---------  End test_fork()  ---------\n\n");
-}
+		close(fd);
+		un_prepare_file("test");
+		M_TRACE("---------  End test_fork()  ---------\n\n");
+	}
 
 	```
 
