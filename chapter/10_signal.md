@@ -163,19 +163,19 @@
 
 3. 示例：在`main`函数中调用`test_kill_raise`函数
 
-	```
-void test_kill_raise()
-{
-    M_TRACE("---------  Begin test_kill_raise()  ---------\n");
-    add_sigaction(SIGCHLD,NULL,0,0,sig_print);
-    add_sigaction(SIGINT,NULL,0,0,sig_print);
-    create_child();
-    // 只有父进程能到达此处
-    check_waitpid_signal();
-    print_pid();
-    print_parent_pid();
-    M_TRACE("---------  End test_kill_raise()  ---------\n\n");
-}
+	```c
+	void test_kill_raise()
+	{
+		M_TRACE("---------  Begin test_kill_raise()  ---------\n");
+		add_sigaction(SIGCHLD,NULL,0,0,sig_print);
+		add_sigaction(SIGINT,NULL,0,0,sig_print);
+		create_child();
+		// 只有父进程能到达此处
+		check_waitpid_signal();
+		print_pid();
+		print_parent_pid();
+		M_TRACE("---------  End test_kill_raise()  ---------\n\n");
+	}
 	```
 	![kill_raise](../imgs/signal/kill_raise.JPG)
 
@@ -207,21 +207,21 @@ void test_kill_raise()
 
 5. 示例：在`main`函数中调用`test_alarm`函数
 
-	```
-void test_alarm()
-{
-    M_TRACE("---------  Begin test_alarm()  ---------\n");
-    add_sigaction(SIGALRM,NULL,0,0,sig_print);
-    My_alarm(2) ; // 2s 定时器
-    sleep(3);
-    My_alarm(3); //3s 定时器
-    sleep(1);
-    My_alarm(0);// 取消定时器
-    sleep(3);
-    My_alarm(4); //4s 定时器
-    My_alarm(2); //2s 定时器
-    M_TRACE("---------  End test_alarm()  ---------\n\n");
-}
+	```c
+	void test_alarm()
+	{
+		M_TRACE("---------  Begin test_alarm()  ---------\n");
+		add_sigaction(SIGALRM,NULL,0,0,sig_print);
+		My_alarm(2) ; // 2s 定时器
+		sleep(3);
+		My_alarm(3); //3s 定时器
+		sleep(1);
+		My_alarm(0);// 取消定时器
+		sleep(3);
+		My_alarm(4); //4s 定时器
+		My_alarm(2); //2s 定时器
+		M_TRACE("---------  End test_alarm()  ---------\n\n");
+	}
 	```
 	![alarm](../imgs/signal/alarm.JPG)
  
