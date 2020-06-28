@@ -1122,7 +1122,7 @@ int main(void)
 
 4. `ftrylockfile/flockfile/funlockfile`函数：为`FILE`对象加锁/解锁
 
-	```
+	```c
 	#include<stdio.h>
 	int ftrylockfile(FILE *fp);
 	void flockfile(FILE *fp);
@@ -1137,48 +1137,48 @@ int main(void)
 	当处理多个`FILE`对象时，需要注意潜在的死锁，需要对所有的锁仔细排序	
 5. 示例：
 
-	```
-#include <stdio.h>
-#include<pthread.h>
-#include<string.h>
-#include<errno.h>
-#include<unistd.h>
-typedef void * VType;
-VType thread_func (VType arg)
-{
+	```c
+    #include <stdio.h>
+    #include<pthread.h>
+    #include<string.h>
+    #include<errno.h>
+    #include<unistd.h>
+    typedef void * VType;
+    VType thread_func (VType arg)
+    {
 
-    fprintf(stdout,"In thread 0x%x ,line 1\n",pthread_self());
-    sleep(1);
-    fprintf(stdout,"In thread 0x%x ,line 2\n",pthread_self());
-    sleep(1);
-    fprintf(stdout,"In thread 0x%x ,line 3\n",pthread_self());
-}
-int main(void)
-{
-    pthread_t ids[2];
-    pthread_create(ids,NULL,thread_func,0);
-    pthread_create(ids+1,NULL,thread_func,0);
-    pthread_join(ids[0],NULL);
-    pthread_join(ids[1],NULL);
-    return 0;
-}
+        fprintf(stdout,"In thread 0x%x ,line 1\n",pthread_self());
+        sleep(1);
+        fprintf(stdout,"In thread 0x%x ,line 2\n",pthread_self());
+        sleep(1);
+        fprintf(stdout,"In thread 0x%x ,line 3\n",pthread_self());
+    }
+    int main(void)
+    {
+        pthread_t ids[2];
+        pthread_create(ids,NULL,thread_func,0);
+        pthread_create(ids+1,NULL,thread_func,0);
+        pthread_join(ids[0],NULL);
+        pthread_join(ids[1],NULL);
+        return 0;
+    }
 	```
 	运行结果如下。可以看到对`stdio`这个`FILE`对象的访问是交叉进行的。
 	![thread_FILE](../imgs/thread_control/thread_FILE.JPG)
 
 	我们修改`thread_func`函数为：
 
-	```
-VType thread_func (VType arg)
-{
-    flockfile(stdout);
-    fprintf(stdout,"In thread 0x%x ,line 1\n",pthread_self());
-    sleep(1);
-    fprintf(stdout,"In thread 0x%x ,line 2\n",pthread_self());
-    sleep(1);
-    fprintf(stdout,"In thread 0x%x ,line 3\n",pthread_self());
-    funlockfile(stdout);
-}
+	```c
+    VType thread_func (VType arg)
+    {
+        flockfile(stdout);
+        fprintf(stdout,"In thread 0x%x ,line 1\n",pthread_self());
+        sleep(1);
+        fprintf(stdout,"In thread 0x%x ,line 2\n",pthread_self());
+        sleep(1);
+        fprintf(stdout,"In thread 0x%x ,line 3\n",pthread_self());
+        funlockfile(stdout);
+    }
 	```
 
 	运行结果如下。可以看到对`stdio`这个`FILE`对象的访问是获得锁之后才能访问的。
@@ -1186,7 +1186,7 @@ VType thread_func (VType arg)
 
 6. 对于线程可重入版本的标准`IO`函数，标准`IO`函数都首先对`FILE`加锁，然后操作完成后再对`FILE`解锁。那么在进行一次一个字符的`IO`时，就会出现严重的性能下降。此时提供了不加锁版本的基于字符的标准`IO`函数：
 
-	```
+	```c
 	#include<stdio.h>
 	int getchar_unlocked(void);
 	int getc_unlocked(FILE *fp);
@@ -1217,7 +1217,7 @@ VType thread_func (VType arg)
 
 4. `pthread_key_create`函数：创建线程私有数据的键
 
-	```
+	```c
 	#include<pthread.h>
 	int pthread_key_create(pthread_key_t *keyp,void (*destructor)(void*));
 	```
@@ -1303,51 +1303,51 @@ VType thread_func (VType arg)
 
 10. 示例：
 
-	```
-#include <stdio.h>
-#include<pthread.h>
-#include<string.h>
-#include<errno.h>
-typedef void * VType;
-pthread_key_t main_key;
-pthread_key_t thread_key;
-pthread_once_t initflag=PTHREAD_ONCE_INIT;
-void destructor_main_key(VType data)
-{
-    printf("\tdestructor_main_key is called:data is %d\n",data);
-}
-void destructor_thread_key(VType data)
-{
-    printf("\tdestructor_thread_key is called:data is %d\n",data);
-}
-void initfn()
-{
-    pthread_key_create(&thread_key,destructor_thread_key);
-    printf("\tthread_key init once\n");
-}
-VType thread_func (VType arg)
-{
-    int ok=pthread_once(&initflag,initfn);
-    if(ok!=0) printf("Init thread_key failed ,because %s\n",strerror(ok));
-    pthread_setspecific(main_key,arg);
-    VType val=pthread_getspecific(main_key);
-    printf("In thread 0x%x, thread local var is %d\n",pthread_self(),val);
-}
-int main(void)
-{
-    pthread_key_create(&main_key,destructor_main_key);
-    pthread_t ids[5];
-    for(int i=0;i<5;i++)
+	```c
+    #include <stdio.h>
+    #include<pthread.h>
+    #include<string.h>
+    #include<errno.h>
+    typedef void * VType;
+    pthread_key_t main_key;
+    pthread_key_t thread_key;
+    pthread_once_t initflag=PTHREAD_ONCE_INIT;
+    void destructor_main_key(VType data)
     {
-        pthread_create(ids+i,NULL,thread_func,i+10);
+        printf("\tdestructor_main_key is called:data is %d\n",data);
     }
-    for(int i=0;i<5;i++)
+    void destructor_thread_key(VType data)
     {
-        int ok=pthread_join(ids[i],NULL);
-        if(ok!=0) printf("wait thread 0x%x failed ,because %s\n",ids[i],strerror(ok));
+        printf("\tdestructor_thread_key is called:data is %d\n",data);
     }
-    return 0;
-}
+    void initfn()
+    {
+        pthread_key_create(&thread_key,destructor_thread_key);
+        printf("\tthread_key init once\n");
+    }
+    VType thread_func (VType arg)
+    {
+        int ok=pthread_once(&initflag,initfn);
+        if(ok!=0) printf("Init thread_key failed ,because %s\n",strerror(ok));
+        pthread_setspecific(main_key,arg);
+        VType val=pthread_getspecific(main_key);
+        printf("In thread 0x%x, thread local var is %d\n",pthread_self(),val);
+    }
+    int main(void)
+    {
+        pthread_key_create(&main_key,destructor_main_key);
+        pthread_t ids[5];
+        for(int i=0;i<5;i++)
+        {
+            pthread_create(ids+i,NULL,thread_func,i+10);
+        }
+        for(int i=0;i<5;i++)
+        {
+            int ok=pthread_join(ids[i],NULL);
+            if(ok!=0) printf("wait thread 0x%x failed ,because %s\n",ids[i],strerror(ok));
+        }
+        return 0;
+    }
 	```
 	运行结果如下所示。可以看出：
 	- `initfn`函数在所有线程中只调用一次，且第一个执行到此处的线程调用
@@ -1425,31 +1425,31 @@ int main(void)
 	- `PTHREAD_CANCEL_ASYNCHRONOUS`： 异步取消。此时线程可以在任意时间取消，不是非的遇到取消点才能被取消 
 7. 示例：
 
-	```
-#include <stdio.h>
-#include<pthread.h>
-#include<string.h>
-#include<errno.h>
-#include<unistd.h>
-typedef void * VType;
-VType thread_func (VType arg)
-{
-    int oldstate;
-    int oldtype;
-    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE,&oldstate);
-    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,&oldtype);
-    printf("Old State is %s\n",oldstate==PTHREAD_CANCEL_DISABLE?
-               "PTHREAD_CANCEL_DISABLE":"PTHREAD_CANCEL_ENABLE");
-    printf("Old type is %s\n",oldtype==PTHREAD_CANCEL_DEFERRED?
-               "PTHREAD_CANCEL_DEFERRED":"PTHREAD_CANCEL_ASYNCHRONOUS");
-}
-int main(void)
-{
-    pthread_t id;
-    pthread_create(&id,NULL,thread_func,NULL);
-    pthread_join(id,NULL);
-    return 0;
-}
+	```c
+    #include <stdio.h>
+    #include<pthread.h>
+    #include<string.h>
+    #include<errno.h>
+    #include<unistd.h>
+    typedef void * VType;
+    VType thread_func (VType arg)
+    {
+        int oldstate;
+        int oldtype;
+        pthread_setcancelstate(PTHREAD_CANCEL_DISABLE,&oldstate);
+        pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,&oldtype);
+        printf("Old State is %s\n",oldstate==PTHREAD_CANCEL_DISABLE?
+                "PTHREAD_CANCEL_DISABLE":"PTHREAD_CANCEL_ENABLE");
+        printf("Old type is %s\n",oldtype==PTHREAD_CANCEL_DEFERRED?
+                "PTHREAD_CANCEL_DEFERRED":"PTHREAD_CANCEL_ASYNCHRONOUS");
+    }
+    int main(void)
+    {
+        pthread_t id;
+        pthread_create(&id,NULL,thread_func,NULL);
+        pthread_join(id,NULL);
+        return 0;
+    }
 	```
 	![pthread_cancel_state_type](../imgs/thread_control/pthread_cancel_state_type.JPG)
 
@@ -1466,7 +1466,7 @@ int main(void)
 
 4. `pthread_sigmask`函数：修改线程的信号屏蔽字
 
-	```
+	```c
 	#include<signal.h>
 	int pthread_sigmask(int how,const sigset_t *restrict set,sigset_t *restrict oset);
 	```
