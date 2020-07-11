@@ -386,7 +386,7 @@ void test_thread_join()
 
  涉及的函数为：
 
- ```
+ ```c
  #include<pthread.h>
  int pthread_mutex_init(pthread_mutex_t *restrict mutex,
   const pthread_mutexattr_t *restrict attr);
@@ -402,7 +402,7 @@ void test_thread_join()
 
 4. `pthread_mutex_lock/pthread_mutex_trylock/pthread_mutex_unlock`函数：对互斥量加锁/解锁操作
 
- ```
+ ```c
  #include<pthread.h>
  int pthread_mutex_lock(pthread_mutex_t *mutex);
  int pthread_mutex_trylock(pthread_mutex_t *mutex);
