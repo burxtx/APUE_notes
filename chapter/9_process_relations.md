@@ -231,18 +231,18 @@ void test_getsid_setsid()
 4. 示例：在`main`函数中调用`test_tcgetpgrp_tcsetpgrp`函数：
 
 
-	```
-void test_tcgetpgrp_tcsetpgrp()
-{
-    M_TRACE("---------  Begin test_tcgetpgrp_tcsetpgrp()  ---------\n");
-    create_child();
-    // 只有父进程能到达此处
-    check_waitpid();
-    print_pid();
-    print_parent_pid();
-    My_getpgrp(); // 父进程自己
-    M_TRACE("---------  End test_tcgetpgrp_tcsetpgrp()  ---------\n\n");
-}
+	```c
+	void test_tcgetpgrp_tcsetpgrp()
+	{
+		M_TRACE("---------  Begin test_tcgetpgrp_tcsetpgrp()  ---------\n");
+		create_child();
+		// 只有父进程能到达此处
+		check_waitpid();
+		print_pid();
+		print_parent_pid();
+		My_getpgrp(); // 父进程自己
+		M_TRACE("---------  End test_tcgetpgrp_tcsetpgrp()  ---------\n\n");
+	}
 	```
   	![control_terminal](../imgs/progress_relations/control_terminal.JPG) 
 	可以看到：
