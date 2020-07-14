@@ -188,27 +188,26 @@
 
 14. 示例：在`main`函数中调用`test_thread_quit`函数：
 
-  ```
-
-void test_thread_quit()
-{
-    M_TRACE("---------  Begin test_thread_quit()  ---------\n");
-    //******** 创建子线程 *********//
-    pthread_mutex_lock(&mutex); //必须同步。否则多个线程的输出交叉进行
-    pthread_t threads[3];
-    My_pthread_create(threads+0,NULL,thread_func_return,(void*)0);
-    My_pthread_create(threads+1,NULL,thread_func_exit,(void*)1);
-    My_pthread_create(threads+2,NULL,thread_func_exit,(void*)2);
-    pthread_mutex_unlock(&mutex);
-    My_pthread_cancel(threads[2]) ; // 取消最后一个子线程
-//******** 等待子线程结束*********//
-    int values[3];
-    for(int i=0;i<3;i++)
+  ```c
+    void test_thread_quit()
     {
-        thread_join_int(threads[i],values+i);
+        M_TRACE("---------  Begin test_thread_quit()  ---------\n");
+        //******** 创建子线程 *********//
+        pthread_mutex_lock(&mutex); //必须同步。否则多个线程的输出交叉进行
+        pthread_t threads[3];
+        My_pthread_create(threads+0,NULL,thread_func_return,(void*)0);
+        My_pthread_create(threads+1,NULL,thread_func_exit,(void*)1);
+        My_pthread_create(threads+2,NULL,thread_func_exit,(void*)2);
+        pthread_mutex_unlock(&mutex);
+        My_pthread_cancel(threads[2]) ; // 取消最后一个子线程
+    //******** 等待子线程结束*********//
+        int values[3];
+        for(int i=0;i<3;i++)
+        {
+            thread_join_int(threads[i],values+i);
+        }
+        M_TRACE("---------  End test_thread_quit()  ---------\n\n");
     }
-    M_TRACE("---------  End test_thread_quit()  ---------\n\n");
-}
  ```
 
  ![thread_quit](../imgs/thread/thread_quit.JPG)

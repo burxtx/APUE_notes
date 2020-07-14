@@ -148,46 +148,46 @@
 
 8. 示例：在`main`函数中调用`test_vfork`函数：
 
-	```
-void test_vfork()
-{
-    M_TRACE("---------  Begin test_vfork()  ---------\n");
-    assert(prepare_file("test","abc",3,S_IRWXU)==0);
-    int fd=My_open("test",O_RDWR);
-    if(-1==fd)
-    {
-        un_prepare_file("test");
-        M_TRACE("---------  End test_fork()  ---------\n\n");
-        return;
-    }
-    //****** 打开文件成功 *************//
+	```c
+	void test_vfork()
+	{
+		M_TRACE("---------  Begin test_vfork()  ---------\n");
+		assert(prepare_file("test","abc",3,S_IRWXU)==0);
+		int fd=My_open("test",O_RDWR);
+		if(-1==fd)
+		{
+			un_prepare_file("test");
+			M_TRACE("---------  End test_fork()  ---------\n\n");
+			return;
+		}
+		//****** 打开文件成功 *************//
 
-    int i=0; // 用于测试父子进程是否共享同一个子空间
-    int id=vfork();
-    if(0==id)
-    {//child
-//        fcntl_lock(fd);  // 加锁
-        printf("*********** In Child ***********\n");
-        print_pid_ppid();
-        printf("i=%d\n",i);
-        i=999;
-        printf("*********** In Child ***********\n");
-//        fcntl_unlock(fd); // 解锁
-        _exit(0);
-    }else
-    {//parent
-//        fcntl_lock(fd);  // 加锁
-        printf("*********** In Parent ***********\n");
-        print_pid_ppid();
-        printf("i=%d\n",i);
-        printf("*********** In Parent ***********\n");
-//        fcntl_unlock(fd); // 解锁
-    }
+		int i=0; // 用于测试父子进程是否共享同一个子空间
+		int id=vfork();
+		if(0==id)
+		{//child
+	//        fcntl_lock(fd);  // 加锁
+			printf("*********** In Child ***********\n");
+			print_pid_ppid();
+			printf("i=%d\n",i);
+			i=999;
+			printf("*********** In Child ***********\n");
+	//        fcntl_unlock(fd); // 解锁
+			_exit(0);
+		}else
+		{//parent
+	//        fcntl_lock(fd);  // 加锁
+			printf("*********** In Parent ***********\n");
+			print_pid_ppid();
+			printf("i=%d\n",i);
+			printf("*********** In Parent ***********\n");
+	//        fcntl_unlock(fd); // 解锁
+		}
 
-    close(fd);
-    un_prepare_file("test");
-    M_TRACE("---------  End test_vfork()  ---------\n\n");
-}
+		close(fd);
+		un_prepare_file("test");
+		M_TRACE("---------  End test_vfork()  ---------\n\n");
+	}
 	```
   	![vfork](../imgs/progress_control/vfork.JPG)
 	
@@ -298,40 +298,40 @@ void test_vfork()
 
 6. 示例：在`main`函数中调用`test_wait_waitpid`函数：
 
-	```
-void test_wait_waitpid()
-{
-    M_TRACE("---------  Begin test_wait_waitpid()  ---------\n");
-    assert(prepare_file("test","abc",3,S_IRWXU)==0);
-    int fd=My_open("test",O_RDWR);
-    if(-1==fd)
-    {
-        un_prepare_file("test");
-        M_TRACE("---------  End test_fork()  ---------\n\n");
-        return;
-    }
-    //****** 打开文件成功 *************//
+	```c
+	void test_wait_waitpid()
+	{
+		M_TRACE("---------  Begin test_wait_waitpid()  ---------\n");
+		assert(prepare_file("test","abc",3,S_IRWXU)==0);
+		int fd=My_open("test",O_RDWR);
+		if(-1==fd)
+		{
+			un_prepare_file("test");
+			M_TRACE("---------  End test_fork()  ---------\n\n");
+			return;
+		}
+		//****** 打开文件成功 *************//
 
-    prgress_func(fd,"**********Parent***********");
-    if(0!=child_exit(fd,100))
-    {// parent
-        sleep(1); //确保父进程稍后执行
-        if(0!=child_abort(fd))
-        {//parent
-            sleep(1); //确保父进程稍后执行
-            if(0!=child_signal(fd))
-            {
-                 sleep(1); //确保父进程稍后执行
-                 check_wait();   //only wait at parent （二选一）
-                 // check_waitpid(); // only wait at parent  （二选一）
+		prgress_func(fd,"**********Parent***********");
+		if(0!=child_exit(fd,100))
+		{// parent
+			sleep(1); //确保父进程稍后执行
+			if(0!=child_abort(fd))
+			{//parent
+				sleep(1); //确保父进程稍后执行
+				if(0!=child_signal(fd))
+				{
+					sleep(1); //确保父进程稍后执行
+					check_wait();   //only wait at parent （二选一）
+					// check_waitpid(); // only wait at parent  （二选一）
 
-                 close(fd);
-                 un_prepare_file("test");
-                 M_TRACE("---------  End test_wait_waitpid()  ---------\n\n");
-            }
-        }
-    }
-}
+					close(fd);
+					un_prepare_file("test");
+					M_TRACE("---------  End test_wait_waitpid()  ---------\n\n");
+				}
+			}
+		}
+	}
 	```
   	![wait](../imgs/progress_control/wait.JPG)
 	

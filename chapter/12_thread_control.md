@@ -21,7 +21,7 @@
 
 1. `pthread_attr_init/pthread_attr_destroy`函数：线程属性的初始化函数和销毁函数
 
-	```
+	```c
 	#include<pthread>
 	int pthread_attr_init(pthread_attr_t *attr);
 	int pthread_attr_destroy(pthread_attr_t *attr);
@@ -47,7 +47,7 @@
 	
 3. `pthread_attr_getdetachstate/pthread_attr_setdetachsetate`函数：获取/设置线程的分离状态属性
 
-	```
+	```c
 	#include<pthread>
 	int pthread_attr_getdetachstate(const pthread_attr_t *restrict attr,
 		int *detachstate);
@@ -71,7 +71,7 @@
 
 4. `pthread_attr_getstack/pthread_attr_setstack`函数：获取/设置线程的线程栈属性
 
-	```
+	```c
 	#include<pthread.h>
 	int pthread_attr_getstack(const pthread_attr_t *restrict attr,
 		void ** restrict stackaddr,size_t *restrict stacksize);
@@ -107,7 +107,7 @@
 
 5. `pthread_attr_getstacksize/pthread_attr_setstacksize`函数：获取/设置线程的栈大小
 
-	```
+	```c
 	#include<pthread.h>
 	int pthread_attr_getstacksize(const pthread_attr_t *restrict attr,
 		 size_t *restrict stacksize);
@@ -128,7 +128,7 @@
 
 6. `pthread_attr_getguardsize/pthread_attr_setguardsize`函数：获取/设置线程的`guardsize`属性
 
-	```
+	```c
 	#include<pthread.h>
 	int pthread_attr_getguardsize(const pthread_attr_t *restrict attr,
 		 size_t *restrict guardsize);
@@ -152,156 +152,156 @@
 
 7. 示例
 
-	```
-#include <stdio.h>
-#include<pthread.h>
-#include<string.h>
-#include<errno.h>
-#include<malloc.h>
-typedef void * VType;
-pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
-void print_pthread_detachstate(const pthread_attr_t*attr)
-{
-    int detach_state;
-    int ok=pthread_attr_getdetachstate(attr,&detach_state);
-    if(ok!=0)
+	```c
+    #include <stdio.h>
+    #include<pthread.h>
+    #include<string.h>
+    #include<errno.h>
+    #include<malloc.h>
+    typedef void * VType;
+    pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
+    void print_pthread_detachstate(const pthread_attr_t*attr)
     {
-        printf("\tget detach state error,because :%s\n",strerror(ok));
-    }else
-    {
-        printf("\tdetach state is %s\n",detach_state==PTHREAD_CREATE_DETACHED?
-			 "Detached":"Joinable");
-    }
-}
-void print_pthread_stack(const pthread_attr_t *attr)
-{
-    VType stack;
-    size_t stacksize;
-    int ok=pthread_attr_getstack(attr,&stack,&stacksize);
-    if(ok!=0)
-    {
-        printf("\tget stack error,because :%s\n",strerror(ok));
-    }else
-    {
-        printf("\tstack addr is 0x%x,stack size is %d\n",stack,stacksize);
-
-    }
-}
-void print_pthread_guardsize(const pthread_attr_t *attr)
-{
-    size_t guardsize;
-    int ok=pthread_attr_getguardsize(attr,&guardsize);
-    if(ok!=0)
-    {
-        printf("\tget guard size error,because :%s\n",strerror(ok));
-    }else
-    {
-        printf("\tguard size is %d\n",guardsize);
-    }
-}
-void print_pthread_attr(const pthread_attr_t*attr)
-{
-    print_pthread_detachstate(attr);
-    print_pthread_stack(attr);
-    print_pthread_guardsize(attr);
-}
-VType thread_func (VType arg)
-{// arg will be set to pthread_attr_t*attr
-    pthread_attr_t*attr=(pthread_attr_t*)arg;
-    pthread_mutex_lock(&mutex);
-    pthread_t id=pthread_self();
-    printf("---------Begin Thread 0x%x --------\n",id);
-    print_pthread_attr(attr);
-    printf("---------End Thread--------\n");
-    pthread_mutex_unlock(&mutex);
-    return arg;
-}
-pthread_attr_t pthread_attr_default;
-pthread_attr_t pthread_attr_detach;
-pthread_attr_t pthread_attr_stack;
-pthread_attr_t pthread_attr_stack_size;
-pthread_attr_t pthread_attr_guard_size;
-int main(void)
-{
-    //******** init pthread_attr_t *****
-    pthread_attr_init(&pthread_attr_default);
-    pthread_attr_init(&pthread_attr_detach);
-    pthread_attr_init(&pthread_attr_stack);
-    pthread_attr_init(&pthread_attr_stack_size);
-    pthread_attr_init(&pthread_attr_guard_size);
-    //********** set pthread_attr_t ******
-    int ok= pthread_attr_setdetachstate(&pthread_attr_detach,PTHREAD_CREATE_DETACHED);
-    if(ok!=0)
-    {
-        printf("pthread_attr_setdetachstate failed, because %s \n",strerror(ok));
-        return -1;
-    }
-    size_t stack_size=40960;
-    char *buffer=malloc(stack_size);
-    ok=pthread_attr_setstack(&pthread_attr_stack,(void*)buffer,stack_size);
-    if(ok!=0)
-    {
-        printf("pthread_attr_setstack failed, because %s \n",strerror(ok));
-        return -1;
-    }
-    ok=pthread_attr_setstacksize(&pthread_attr_stack_size,stack_size);
-    if(ok!=0)
-    {
-        printf("pthread_attr_setstacksize failed, because %s \n",strerror(ok));
-        return -1;
-    }
-
-    size_t guard_size=16;
-    ok=pthread_attr_setguardsize(&pthread_attr_guard_size,guard_size);
-    if(ok!=0)
-    {
-        printf("pthread_attr_setguardsize failed, because %s \n",strerror(ok));
-        return -1;
-    }
-    //********* print pthread_attr_t ***********
-    printf("pthread_attr_default:\n");
-    print_pthread_attr(&pthread_attr_default);
-    printf("pthread_attr_detach:\n");
-    print_pthread_attr(&pthread_attr_detach);
-    printf("pthread_attr_stack:\n");
-    print_pthread_attr(&pthread_attr_stack);
-    printf("pthread_attr_stack_size:\n");
-    print_pthread_attr(&pthread_attr_stack_size);
-    printf("pthread_attr_guard_size:\n");
-    print_pthread_attr(&pthread_attr_guard_size);
-    //********************** create thread *******
-    pthread_t threads[5];
-    pthread_create(0+threads,&pthread_attr_default,thread_func,
-			&pthread_attr_default);
-    pthread_create(1+threads,&pthread_attr_detach,thread_func,
-			&pthread_attr_detach);
-    pthread_create(2+threads,&pthread_attr_stack,thread_func,
-			&pthread_attr_stack);
-    pthread_create(3+threads,&pthread_attr_stack_size,thread_func,
-			&pthread_attr_stack_size);
-    pthread_create(4+threads,&pthread_attr_guard_size,thread_func,
-			&pthread_attr_guard_size);
-    //************ join thread *******
-    for(int i=0;i<5;i++)
-    {
-        int ok=pthread_join(threads[i],NULL);
+        int detach_state;
+        int ok=pthread_attr_getdetachstate(attr,&detach_state);
         if(ok!=0)
         {
-            printf("join threads 0x%x failed,because %s\n",threads[i],strerror(ok));
+            printf("\tget detach state error,because :%s\n",strerror(ok));
         }else
         {
-            printf("joine threads 0x%x\n",threads[i]);
+            printf("\tdetach state is %s\n",detach_state==PTHREAD_CREATE_DETACHED?
+                "Detached":"Joinable");
         }
     }
-    //******** destroy pthread_attr_t *****
-    pthread_attr_destroy(&pthread_attr_default);
-    pthread_attr_destroy(&pthread_attr_detach);
-    pthread_attr_destroy(&pthread_attr_stack);
-    pthread_attr_destroy(&pthread_attr_stack_size);
-    pthread_attr_destroy(&pthread_attr_guard_size);
-    free(buffer);
-    return 0;
-}
+    void print_pthread_stack(const pthread_attr_t *attr)
+    {
+        VType stack;
+        size_t stacksize;
+        int ok=pthread_attr_getstack(attr,&stack,&stacksize);
+        if(ok!=0)
+        {
+            printf("\tget stack error,because :%s\n",strerror(ok));
+        }else
+        {
+            printf("\tstack addr is 0x%x,stack size is %d\n",stack,stacksize);
+
+        }
+    }
+    void print_pthread_guardsize(const pthread_attr_t *attr)
+    {
+        size_t guardsize;
+        int ok=pthread_attr_getguardsize(attr,&guardsize);
+        if(ok!=0)
+        {
+            printf("\tget guard size error,because :%s\n",strerror(ok));
+        }else
+        {
+            printf("\tguard size is %d\n",guardsize);
+        }
+    }
+    void print_pthread_attr(const pthread_attr_t*attr)
+    {
+        print_pthread_detachstate(attr);
+        print_pthread_stack(attr);
+        print_pthread_guardsize(attr);
+    }
+    VType thread_func (VType arg)
+    {// arg will be set to pthread_attr_t*attr
+        pthread_attr_t*attr=(pthread_attr_t*)arg;
+        pthread_mutex_lock(&mutex);
+        pthread_t id=pthread_self();
+        printf("---------Begin Thread 0x%x --------\n",id);
+        print_pthread_attr(attr);
+        printf("---------End Thread--------\n");
+        pthread_mutex_unlock(&mutex);
+        return arg;
+    }
+    pthread_attr_t pthread_attr_default;
+    pthread_attr_t pthread_attr_detach;
+    pthread_attr_t pthread_attr_stack;
+    pthread_attr_t pthread_attr_stack_size;
+    pthread_attr_t pthread_attr_guard_size;
+    int main(void)
+    {
+        //******** init pthread_attr_t *****
+        pthread_attr_init(&pthread_attr_default);
+        pthread_attr_init(&pthread_attr_detach);
+        pthread_attr_init(&pthread_attr_stack);
+        pthread_attr_init(&pthread_attr_stack_size);
+        pthread_attr_init(&pthread_attr_guard_size);
+        //********** set pthread_attr_t ******
+        int ok= pthread_attr_setdetachstate(&pthread_attr_detach,PTHREAD_CREATE_DETACHED);
+        if(ok!=0)
+        {
+            printf("pthread_attr_setdetachstate failed, because %s \n",strerror(ok));
+            return -1;
+        }
+        size_t stack_size=40960;
+        char *buffer=malloc(stack_size);
+        ok=pthread_attr_setstack(&pthread_attr_stack,(void*)buffer,stack_size);
+        if(ok!=0)
+        {
+            printf("pthread_attr_setstack failed, because %s \n",strerror(ok));
+            return -1;
+        }
+        ok=pthread_attr_setstacksize(&pthread_attr_stack_size,stack_size);
+        if(ok!=0)
+        {
+            printf("pthread_attr_setstacksize failed, because %s \n",strerror(ok));
+            return -1;
+        }
+
+        size_t guard_size=16;
+        ok=pthread_attr_setguardsize(&pthread_attr_guard_size,guard_size);
+        if(ok!=0)
+        {
+            printf("pthread_attr_setguardsize failed, because %s \n",strerror(ok));
+            return -1;
+        }
+        //********* print pthread_attr_t ***********
+        printf("pthread_attr_default:\n");
+        print_pthread_attr(&pthread_attr_default);
+        printf("pthread_attr_detach:\n");
+        print_pthread_attr(&pthread_attr_detach);
+        printf("pthread_attr_stack:\n");
+        print_pthread_attr(&pthread_attr_stack);
+        printf("pthread_attr_stack_size:\n");
+        print_pthread_attr(&pthread_attr_stack_size);
+        printf("pthread_attr_guard_size:\n");
+        print_pthread_attr(&pthread_attr_guard_size);
+        //********************** create thread *******
+        pthread_t threads[5];
+        pthread_create(0+threads,&pthread_attr_default,thread_func,
+                &pthread_attr_default);
+        pthread_create(1+threads,&pthread_attr_detach,thread_func,
+                &pthread_attr_detach);
+        pthread_create(2+threads,&pthread_attr_stack,thread_func,
+                &pthread_attr_stack);
+        pthread_create(3+threads,&pthread_attr_stack_size,thread_func,
+                &pthread_attr_stack_size);
+        pthread_create(4+threads,&pthread_attr_guard_size,thread_func,
+                &pthread_attr_guard_size);
+        //************ join thread *******
+        for(int i=0;i<5;i++)
+        {
+            int ok=pthread_join(threads[i],NULL);
+            if(ok!=0)
+            {
+                printf("join threads 0x%x failed,because %s\n",threads[i],strerror(ok));
+            }else
+            {
+                printf("joine threads 0x%x\n",threads[i]);
+            }
+        }
+        //******** destroy pthread_attr_t *****
+        pthread_attr_destroy(&pthread_attr_default);
+        pthread_attr_destroy(&pthread_attr_detach);
+        pthread_attr_destroy(&pthread_attr_stack);
+        pthread_attr_destroy(&pthread_attr_stack_size);
+        pthread_attr_destroy(&pthread_attr_guard_size);
+        free(buffer);
+        return 0;
+    }
 	```
 	从结果可知：默认情况下，线程是`Joinable`，线程栈长度为0（即栈尚未分配），`guard size`为一页大小（`4Kb`）。
 	
@@ -315,7 +315,7 @@ int main(void)
 
 2. `pthread_mutexattr_init/pthread_mutexattr_destroy`函数：初始化/销毁互斥量	属性
 
-	```
+	```c
 	#include<pthread.h>
 	int pthread_mutexattr_init(pthread_mutexattr_t *attr);
 	int pthread_mutexattr_destroy(pthread_mutexattr_t *attr);
@@ -342,7 +342,7 @@ int main(void)
 
 5. `phtread_mutexattr_getpshared/pthread_mutexattr_setpshared`函数：获取/设置互斥量的进程共享属性
 
-	```
+	```c
 	#include<pthread.h>
 	int phtread_mutexattr_getpshared(const pthread_mutexattr_t *restrict attr,
 		int *restrict pshared);
@@ -362,200 +362,200 @@ int main(void)
 
 6. 示例：
 
-	```
-#include <stdio.h>
-#include <string.h>
-#include<errno.h>
-#include<pthread.h>
-#include<sys/ipc.h>
-#include<sys/shm.h>
-#include<sys/types.h>
-#include<unistd.h>
-typedef void * VType;
-struct shared_structure{
-    pthread_mutex_t mutex; //shred_memory mutex
-    char data[128];
-};
-typedef  struct shared_structure SharedStructure;
-int shmid;
-void create_shared_memory()
-{
-    shmid=shmget(IPC_PRIVATE,sizeof(SharedStructure),IPC_CREAT|0640);
-    if(shmid <0)
+	```c
+    #include <stdio.h>
+    #include <string.h>
+    #include<errno.h>
+    #include<pthread.h>
+    #include<sys/ipc.h>
+    #include<sys/shm.h>
+    #include<sys/types.h>
+    #include<unistd.h>
+    typedef void * VType;
+    struct shared_structure{
+        pthread_mutex_t mutex; //shred_memory mutex
+        char data[128];
+    };
+    typedef  struct shared_structure SharedStructure;
+    int shmid;
+    void create_shared_memory()
     {
-        printf("shmget error,because %s\n",strerror(errno));
-        _exit(-1);
-    }
-}
-void print_mutex_type(const pthread_mutexattr_t * attr)
-{
-    int type;
-    int ok=pthread_mutexattr_gettype(attr,&type);
-    if(ok!=0)
-    {
-        printf("\tpthread_mutexattr_gettype error,because %s\n",strerror(ok));
-    }else
-    {
-        printf("\tmutex type is:");
-        switch (type) {
-        case PTHREAD_MUTEX_NORMAL:
-            printf("NORMAL,");
-            break;
-        case PTHREAD_MUTEX_ERRORCHECK:
-            printf("ERRORCHECK,");
-            break;
-        case PTHREAD_MUTEX_RECURSIVE:
-            printf("RECURSIVE,");
-            break;
-         default:
-            printf("Unknown\n");
-
-        }
-        if(type==PTHREAD_MUTEX_DEFAULT)
+        shmid=shmget(IPC_PRIVATE,sizeof(SharedStructure),IPC_CREAT|0640);
+        if(shmid <0)
         {
-            printf("(DEFAULT)");
-        }
-        printf("\n");
-    }
-}
-void print_mutex_shared(const pthread_mutexattr_t *attr)
-{
-    int shared;
-    int ok=pthread_mutexattr_getpshared(attr,&shared);
-    if(ok!=0)
-    {
-        printf("\tpthread_mutexattr_getpshared error,because %s\n",strerror(ok));
-    }else
-    {
-        printf("\tmutex shared is:");
-        switch (shared) {
-        case PTHREAD_PROCESS_SHARED:
-            printf("Process shared\n");
-            break;
-        case PTHREAD_PROCESS_PRIVATE:
-            printf("Process private\n");
-            break;
-        default:
-            printf("Unkown\n");
-            break;
+            printf("shmget error,because %s\n",strerror(errno));
+            _exit(-1);
         }
     }
-}
-void print_mutex_robust(const pthread_mutexattr_t *attr)
-{
-    int robust;
-    int ok=pthread_mutexattr_getrobust(attr,&robust);
-    if(ok!=0)
+    void print_mutex_type(const pthread_mutexattr_t * attr)
     {
-        printf("\tpthread_mutexattr_getrobust error,because %s\n",strerror(ok));
-    }else
-    {
-        printf("\tmutex robust is:");
-        switch (robust) {
-        case PTHREAD_MUTEX_STALLED:
-            printf("Stalled\n");
-            break;
-        case PTHREAD_MUTEX_ROBUST:
-            printf("Robust\n");
-            break;
-        default:
-            printf("Unkown\n");
-            break;
-        }
-    }
-}
-void print_mutex(const pthread_mutexattr_t *attr)
-{
-    print_mutex_type(attr);
-    print_mutex_shared(attr);
-    print_mutex_robust(attr);
-}
-void test_mutex_pshared()
-{
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    int ok=pthread_mutexattr_setpshared(&attr,PTHREAD_PROCESS_SHARED);
-    if(ok!=0)
-    {
-        printf("pthread_mutexattr_setpshared:PTHREAD_PROCESS_SHARED failed,
-			because %s\n",
-                strerror(ok));
-    }else
-    {
-        print_mutex(&attr);
-    }
-    SharedStructure *memory=shmat(shmid,NULL,NULL);
-    pthread_mutex_init(&memory->mutex,&attr);
-    pid_t id[2];
-    id[0]=fork();
-    if(id[0]==0)
-    {//child 1
-        int ok=pthread_mutex_lock(&memory->mutex);
+        int type;
+        int ok=pthread_mutexattr_gettype(attr,&type);
         if(ok!=0)
         {
-            printf("In child 1,lock mutex failed,because %s\n",strerror(ok));
+            printf("\tpthread_mutexattr_gettype error,because %s\n",strerror(ok));
         }else
         {
-            printf("In child 1,lock mutex ok\n");
-            printf("In child 1,lock mutex ok\n");
-            printf("In child 1,lock mutex ok\n");
-            pthread_mutex_unlock(&memory->mutex);
-        }
-        shmdt(memory);
-        pthread_mutexattr_destroy(&attr);
-        _exit(0);
-    }else
-    {
-        id[1]=fork();
-        if(id[1]==0)
-        {// child2
+            printf("\tmutex type is:");
+            switch (type) {
+            case PTHREAD_MUTEX_NORMAL:
+                printf("NORMAL,");
+                break;
+            case PTHREAD_MUTEX_ERRORCHECK:
+                printf("ERRORCHECK,");
+                break;
+            case PTHREAD_MUTEX_RECURSIVE:
+                printf("RECURSIVE,");
+                break;
+            default:
+                printf("Unknown\n");
 
-            int ok=pthread_mutex_lock(&memory->mutex);
-            if(ok!=0)
-            {
-                printf("In child 2,lock mutex failed,because %s\n",strerror(ok));
-            }else
-            {
-                printf("In child 2,lock mutex ok\n");
-                printf("In child 2,lock mutex ok\n");
-                printf("In child 2,lock mutex ok\n");
-                pthread_mutex_unlock(&memory->mutex);
             }
-            shmdt(&memory);
-            pthread_mutexattr_destroy(&attr);
-            _exit(0);
+            if(type==PTHREAD_MUTEX_DEFAULT)
+            {
+                printf("(DEFAULT)");
+            }
+            printf("\n");
+        }
+    }
+    void print_mutex_shared(const pthread_mutexattr_t *attr)
+    {
+        int shared;
+        int ok=pthread_mutexattr_getpshared(attr,&shared);
+        if(ok!=0)
+        {
+            printf("\tpthread_mutexattr_getpshared error,because %s\n",strerror(ok));
         }else
-        {// In parent
-
+        {
+            printf("\tmutex shared is:");
+            switch (shared) {
+            case PTHREAD_PROCESS_SHARED:
+                printf("Process shared\n");
+                break;
+            case PTHREAD_PROCESS_PRIVATE:
+                printf("Process private\n");
+                break;
+            default:
+                printf("Unkown\n");
+                break;
+            }
+        }
+    }
+    void print_mutex_robust(const pthread_mutexattr_t *attr)
+    {
+        int robust;
+        int ok=pthread_mutexattr_getrobust(attr,&robust);
+        if(ok!=0)
+        {
+            printf("\tpthread_mutexattr_getrobust error,because %s\n",strerror(ok));
+        }else
+        {
+            printf("\tmutex robust is:");
+            switch (robust) {
+            case PTHREAD_MUTEX_STALLED:
+                printf("Stalled\n");
+                break;
+            case PTHREAD_MUTEX_ROBUST:
+                printf("Robust\n");
+                break;
+            default:
+                printf("Unkown\n");
+                break;
+            }
+        }
+    }
+    void print_mutex(const pthread_mutexattr_t *attr)
+    {
+        print_mutex_type(attr);
+        print_mutex_shared(attr);
+        print_mutex_robust(attr);
+    }
+    void test_mutex_pshared()
+    {
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        int ok=pthread_mutexattr_setpshared(&attr,PTHREAD_PROCESS_SHARED);
+        if(ok!=0)
+        {
+            printf("pthread_mutexattr_setpshared:PTHREAD_PROCESS_SHARED failed,
+                because %s\n",
+                    strerror(ok));
+        }else
+        {
+            print_mutex(&attr);
+        }
+        SharedStructure *memory=shmat(shmid,NULL,NULL);
+        pthread_mutex_init(&memory->mutex,&attr);
+        pid_t id[2];
+        id[0]=fork();
+        if(id[0]==0)
+        {//child 1
             int ok=pthread_mutex_lock(&memory->mutex);
             if(ok!=0)
             {
-                printf("In parent,lock mutex failed,because %s\n",strerror(ok));
+                printf("In child 1,lock mutex failed,because %s\n",strerror(ok));
             }else
             {
-                printf("In parent,lock mutex ok\n");
-                printf("In parent,lock mutex ok\n");
-                printf("In parent,lock mutex ok\n");
+                printf("In child 1,lock mutex ok\n");
+                printf("In child 1,lock mutex ok\n");
+                printf("In child 1,lock mutex ok\n");
                 pthread_mutex_unlock(&memory->mutex);
             }
             shmdt(memory);
             pthread_mutexattr_destroy(&attr);
+            _exit(0);
+        }else
+        {
+            id[1]=fork();
+            if(id[1]==0)
+            {// child2
+
+                int ok=pthread_mutex_lock(&memory->mutex);
+                if(ok!=0)
+                {
+                    printf("In child 2,lock mutex failed,because %s\n",strerror(ok));
+                }else
+                {
+                    printf("In child 2,lock mutex ok\n");
+                    printf("In child 2,lock mutex ok\n");
+                    printf("In child 2,lock mutex ok\n");
+                    pthread_mutex_unlock(&memory->mutex);
+                }
+                shmdt(&memory);
+                pthread_mutexattr_destroy(&attr);
+                _exit(0);
+            }else
+            {// In parent
+
+                int ok=pthread_mutex_lock(&memory->mutex);
+                if(ok!=0)
+                {
+                    printf("In parent,lock mutex failed,because %s\n",strerror(ok));
+                }else
+                {
+                    printf("In parent,lock mutex ok\n");
+                    printf("In parent,lock mutex ok\n");
+                    printf("In parent,lock mutex ok\n");
+                    pthread_mutex_unlock(&memory->mutex);
+                }
+                shmdt(memory);
+                pthread_mutexattr_destroy(&attr);
+            }
         }
     }
-}
-int main(void)
-{
-    create_shared_memory();
-    test_mutex_pshared();
-    return 0;
-}
+    int main(void)
+    {
+        create_shared_memory();
+        test_mutex_pshared();
+        return 0;
+    }
 	```
 
 	![mutex_attr_pshared](../imgs/thread_control/mutex_attr_pshared.JPG)
 
 7. `pthread_mutexattr_getrobust/pthread_mutexattr_setrobust`函数：获取/设置互斥量的健壮属性：
 
-	```
+	```c
 	#include<pthread.h>
 	int pthread_mutexattr_getrobust(const pthread_mutexattr_t *restrict attr,
 		int *restrict robust);
@@ -584,7 +584,7 @@ int main(void)
 
 8. 当 `pthread_mutex_lock`返回 `EOWNERDEAD` 时，我们需要调用`pthred_mutex_consistent`函数从而完成互斥量的`owner`切换工作。其函数为：
 
-	```
+	```c
 	#include<pthread.h>
 	int pthread_mutex_consistent(pthread_mutex_t *mutex);
 	```
@@ -598,26 +598,26 @@ int main(void)
 
 	我们将最近的一个例子（观察互斥量的进程共享属性）的：
 
-	```
-{//child 1
-        int ok=pthread_mutex_lock(&memory->mutex);
-        if(ok!=0)
-        {
-            printf("In child 1,lock mutex failed,because %s\n",strerror(ok));
-        }else
-        {
-            printf("In child 1,lock mutex ok\n");
-            printf("In child 1,lock mutex ok\n");
-            printf("In child 1,lock mutex ok\n");
-            pthread_mutex_unlock(&memory->mutex);
-        }
-	...
+	```c
+    {//child 1
+    int ok=pthread_mutex_lock(&memory->mutex);
+    if(ok!=0)
+    {
+        printf("In child 1,lock mutex failed,because %s\n",strerror(ok));
+    }else
+    {
+        printf("In child 1,lock mutex ok\n");
+        printf("In child 1,lock mutex ok\n");
+        printf("In child 1,lock mutex ok\n");
+        pthread_mutex_unlock(&memory->mutex);
+    }
+        ...
 	```
 
 	修改成（即模拟：子进程1持有锁，但是异常终止了而未能释放锁）：
 
-	```
-{//child 1
+	```c
+    {//child 1
         int ok=pthread_mutex_lock(&memory->mutex);
         if(ok!=0)
         {
@@ -638,8 +638,8 @@ int main(void)
 
 	我们继续修改，将：
 
-	```
-if(ok!=0)
+	```c
+    if(ok!=0)
     {
         printf("pthread_mutexattr_setpshared:PTHREAD_PROCESS_SHARED failed,
 			because %s\n",strerror(ok));
@@ -652,8 +652,8 @@ if(ok!=0)
 
 	修改为：
 
-	```
-if(ok!=0)
+	```c
+    if(ok!=0)
     {
         printf("pthread_mutexattr_setpshared:PTHREAD_PROCESS_SHARED failed,
 			because %s\n",strerror(ok));
@@ -679,7 +679,7 @@ if(ok!=0)
 
 	我们继续`test_mutex_pshared`函数从`pid_t id[2];`开始到结尾的代码修改为
 
-	```   
+	```c
 	pid_t id[2];
     id[0]=fork();
     if(id[0]==0)
@@ -754,7 +754,6 @@ if(ok!=0)
             pthread_mutexattr_destroy(&attr);
         }
     }
-}
 	```
   
 	运行结果如下。可以看到： `pthread_mutex_consistent`实际上并没有切换`Owner`（在`UBUNTU 16.04`环境测试）。
@@ -763,7 +762,7 @@ if(ok!=0)
 
 10. `pthread_mutexattr_gettype/pthread_mutexattr_settype`函数：获取/设置互斥量的类型属性
 
-	```
+	```c
 	#include<pthread>
 	int pthread_mutexattr_gettype(const pthread_mutexattr_t *restrict attr,
 		int *restrict type);
@@ -799,146 +798,146 @@ if(ok!=0)
 
 11. 示例
 
-	```
-#include <stdio.h>
-#include <string.h>
-#include<errno.h>
-#include<pthread.h>
-typedef void * VType;
-pthread_mutex_t mutex;
-pthread_mutexattr_t attr;
-void print_mutex_type(const pthread_mutexattr_t * attr)
-{
-    int type;
-    int ok=pthread_mutexattr_gettype(attr,&type);
-    if(ok!=0)
+	```c
+    #include <stdio.h>
+    #include <string.h>
+    #include<errno.h>
+    #include<pthread.h>
+    typedef void * VType;
+    pthread_mutex_t mutex;
+    pthread_mutexattr_t attr;
+    void print_mutex_type(const pthread_mutexattr_t * attr)
     {
-        printf("\tpthread_mutexattr_gettype error,because %s\n",strerror(ok));
-    }else
-    {
-        printf("\tmutex type is:");
-        switch (type) {
-        case PTHREAD_MUTEX_NORMAL:
-            printf("NORMAL,");
-            break;
-        case PTHREAD_MUTEX_ERRORCHECK:
-            printf("ERRORCHECK,");
-            break;
-        case PTHREAD_MUTEX_RECURSIVE:
-            printf("RECURSIVE,");
-            break;
-         default:
-            printf("Unknown\n");
-
-        }
-        if(type==PTHREAD_MUTEX_DEFAULT)
+        int type;
+        int ok=pthread_mutexattr_gettype(attr,&type);
+        if(ok!=0)
         {
-            printf("(DEFAULT)");
-        }
-        printf("\n");
-    }
-}
-void print_mutex_shared(const pthread_mutexattr_t *attr)
-{
-    int shared;
-    int ok=pthread_mutexattr_getpshared(attr,&shared);
-    if(ok!=0)
-    {
-        printf("\tpthread_mutexattr_getpshared error,because %s\n",strerror(ok));
-    }else
-    {
-        printf("\tmutex shared is:");
-        switch (shared) {
-        case PTHREAD_PROCESS_SHARED:
-            printf("Process shared\n");
-            break;
-        case PTHREAD_PROCESS_PRIVATE:
-            printf("Process private\n");
-            break;
-        default:
-            printf("Unkown\n");
-            break;
+            printf("\tpthread_mutexattr_gettype error,because %s\n",strerror(ok));
+        }else
+        {
+            printf("\tmutex type is:");
+            switch (type) {
+            case PTHREAD_MUTEX_NORMAL:
+                printf("NORMAL,");
+                break;
+            case PTHREAD_MUTEX_ERRORCHECK:
+                printf("ERRORCHECK,");
+                break;
+            case PTHREAD_MUTEX_RECURSIVE:
+                printf("RECURSIVE,");
+                break;
+            default:
+                printf("Unknown\n");
+
+            }
+            if(type==PTHREAD_MUTEX_DEFAULT)
+            {
+                printf("(DEFAULT)");
+            }
+            printf("\n");
         }
     }
-}
-void print_mutex_robust(const pthread_mutexattr_t *attr)
-{
-    int robust;
-    int ok=pthread_mutexattr_getrobust(attr,&robust);
-    if(ok!=0)
+    void print_mutex_shared(const pthread_mutexattr_t *attr)
     {
-        printf("\tpthread_mutexattr_getrobust error,because %s\n",strerror(ok));
-    }else
-    {
-        printf("\tmutex robust is:");
-        switch (robust) {
-        case PTHREAD_MUTEX_STALLED:
-            printf("Stalled\n");
-            break;
-        case PTHREAD_MUTEX_ROBUST:
-            printf("Robust\n");
-            break;
-        default:
-            printf("Unkown\n");
-            break;
+        int shared;
+        int ok=pthread_mutexattr_getpshared(attr,&shared);
+        if(ok!=0)
+        {
+            printf("\tpthread_mutexattr_getpshared error,because %s\n",strerror(ok));
+        }else
+        {
+            printf("\tmutex shared is:");
+            switch (shared) {
+            case PTHREAD_PROCESS_SHARED:
+                printf("Process shared\n");
+                break;
+            case PTHREAD_PROCESS_PRIVATE:
+                printf("Process private\n");
+                break;
+            default:
+                printf("Unkown\n");
+                break;
+            }
         }
     }
-}
-void print_mutex(const pthread_mutexattr_t *attr)
-{
-    print_mutex_type(attr);
-    print_mutex_shared(attr);
-    print_mutex_robust(attr);
-}
-void thread_func_1(VType arg)
-{
-    int ok=pthread_mutex_lock(&mutex);
-    if(ok!=0) printf("The first lock is failed,because %s\n",strerror((ok)));
-    else printf("The first lock is ok\n");
+    void print_mutex_robust(const pthread_mutexattr_t *attr)
+    {
+        int robust;
+        int ok=pthread_mutexattr_getrobust(attr,&robust);
+        if(ok!=0)
+        {
+            printf("\tpthread_mutexattr_getrobust error,because %s\n",strerror(ok));
+        }else
+        {
+            printf("\tmutex robust is:");
+            switch (robust) {
+            case PTHREAD_MUTEX_STALLED:
+                printf("Stalled\n");
+                break;
+            case PTHREAD_MUTEX_ROBUST:
+                printf("Robust\n");
+                break;
+            default:
+                printf("Unkown\n");
+                break;
+            }
+        }
+    }
+    void print_mutex(const pthread_mutexattr_t *attr)
+    {
+        print_mutex_type(attr);
+        print_mutex_shared(attr);
+        print_mutex_robust(attr);
+    }
+    void thread_func_1(VType arg)
+    {
+        int ok=pthread_mutex_lock(&mutex);
+        if(ok!=0) printf("The first lock is failed,because %s\n",strerror((ok)));
+        else printf("The first lock is ok\n");
 
-    ok=pthread_mutex_lock(&mutex);
-    if(ok!=0) printf("The second lock is failed,because %s\n",strerror((ok)));
-    else printf("The second lock is ok\n");
+        ok=pthread_mutex_lock(&mutex);
+        if(ok!=0) printf("The second lock is failed,because %s\n",strerror((ok)));
+        else printf("The second lock is ok\n");
 
-    ok=pthread_mutex_unlock(&mutex);
-    if(ok!=0) printf("The first unlock is failed,because %s\n",strerror((ok)));
-    else printf("The first unlock is ok\n");
+        ok=pthread_mutex_unlock(&mutex);
+        if(ok!=0) printf("The first unlock is failed,because %s\n",strerror((ok)));
+        else printf("The first unlock is ok\n");
 
-    ok=pthread_mutex_unlock(&mutex);
-    if(ok!=0) printf("The second unlock is failed,because %s\n",strerror((ok)));
-    else printf("The second unlock is ok\n");
-}
-void thread_func_2(VType arg)
-{
-    int ok=pthread_mutex_lock(&mutex);
-    if(ok!=0) printf("The first lock is failed,because %s\n",strerror((ok)));
-    else printf("The first lock is ok\n");
+        ok=pthread_mutex_unlock(&mutex);
+        if(ok!=0) printf("The second unlock is failed,because %s\n",strerror((ok)));
+        else printf("The second unlock is ok\n");
+    }
+    void thread_func_2(VType arg)
+    {
+        int ok=pthread_mutex_lock(&mutex);
+        if(ok!=0) printf("The first lock is failed,because %s\n",strerror((ok)));
+        else printf("The first lock is ok\n");
 
-    ok=pthread_mutex_unlock(&mutex);
-    if(ok!=0) printf("The first unlock is failed,because %s\n",strerror((ok)));
-    else printf("The first unlock is ok\n");
+        ok=pthread_mutex_unlock(&mutex);
+        if(ok!=0) printf("The first unlock is failed,because %s\n",strerror((ok)));
+        else printf("The first unlock is ok\n");
 
-    ok=pthread_mutex_unlock(&mutex);
-    if(ok!=0) printf("The second unlock is failed,because %s\n",strerror((ok)));
-    else printf("The second unlock is ok\n");
-}
-int main(void)
-{
-    pthread_mutexattr_init( &attr);
-    pthread_mutexattr_settype( &attr,PTHREAD_MUTEX_NORMAL); 
-	//PTHREAD_MUTEX_ERRORCHECK,PTHREAD_MUTEX_RECURSIVE
-    pthread_mutex_init(&mutex,&attr);
-    print_mutex(&attr);
+        ok=pthread_mutex_unlock(&mutex);
+        if(ok!=0) printf("The second unlock is failed,because %s\n",strerror((ok)));
+        else printf("The second unlock is ok\n");
+    }
+    int main(void)
+    {
+        pthread_mutexattr_init( &attr);
+        pthread_mutexattr_settype( &attr,PTHREAD_MUTEX_NORMAL); 
+        //PTHREAD_MUTEX_ERRORCHECK,PTHREAD_MUTEX_RECURSIVE
+        pthread_mutex_init(&mutex,&attr);
+        print_mutex(&attr);
 
-    pthread_t thread;
-    int ok=pthread_create(&thread,NULL,thread_func_1,(void*)0);
-    if(ok!=0) printf("create thread error,because %s\n",strerror(ok));
-    pthread_join(thread,NULL);
+        pthread_t thread;
+        int ok=pthread_create(&thread,NULL,thread_func_1,(void*)0);
+        if(ok!=0) printf("create thread error,because %s\n",strerror(ok));
+        pthread_join(thread,NULL);
 
-    pthread_mutexattr_destroy(&attr);
-    pthread_mutex_destroy(&mutex);
-    return 0;
-}
+        pthread_mutexattr_destroy(&attr);
+        pthread_mutex_destroy(&mutex);
+        return 0;
+    }
 
 	```
 
@@ -1526,63 +1525,63 @@ int main(void)
 
 8. 示例：
 
-	```
-#include <stdio.h>
-#include<pthread.h>
-#include<string.h>
-#include<signal.h>
-#include<errno.h>
-#include<unistd.h>
-typedef void * VType;
-VType thread_func (VType arg)
-{
-    sigset_t sigset;
-    sigemptyset(&sigset);
-    sigaddset(&sigset,arg);
-    pthread_sigmask(SIG_SETMASK,&sigset,NULL);
-    printf("Thread is 0x%x will block signal %s\n",pthread_self(),strsignal(arg));
-    pause();
-    printf("Thread 0x%x wake up,because signo %s",pthread_self(),strsignal(arg));
-}
-void sig_print(int signo,siginfo_t *info, void *context)
-{
-    printf("Begin signal Hanlder:\n");
-    psiginfo(info,"The siginfo is:\t");
-    printf("The current thread is 0x%x\n",pthread_self());
-    printf("End signal Hanlder:\n");
-}
-void add_sigaction(int signo)
-{
-    sigset_t set;
-    sigemptyset(&set);
-
-    struct sigaction action;
-    action.sa_sigaction=sig_print;
-    action.sa_flags=SA_SIGINFO;
-    action.sa_mask=set;
-    if(sigaction(signo,&action,NULL)==-1)
+	```c
+    #include <stdio.h>
+    #include<pthread.h>
+    #include<string.h>
+    #include<signal.h>
+    #include<errno.h>
+    #include<unistd.h>
+    typedef void * VType;
+    VType thread_func (VType arg)
     {
-        printf("set sigaction for signal %s failed!,because %s\n",
-			strsignal(signo),strerror(errno));
-    }else
-    {
-        printf("set sigaction for signal %s successed\n",strsignal(signo));
+        sigset_t sigset;
+        sigemptyset(&sigset);
+        sigaddset(&sigset,arg);
+        pthread_sigmask(SIG_SETMASK,&sigset,NULL);
+        printf("Thread is 0x%x will block signal %s\n",pthread_self(),strsignal(arg));
+        pause();
+        printf("Thread 0x%x wake up,because signo %s",pthread_self(),strsignal(arg));
     }
-}
-int main(void)
-{
-    pthread_t ids[2];
-    add_sigaction(SIGINT);
-    add_sigaction(SIGALRM);
-    pthread_create(ids,NULL,thread_func,SIGINT);
-    pthread_create(ids+1,NULL,thread_func,SIGALRM);
-    sleep(1);
-    pthread_kill(ids[0],SIGINT);
-    pthread_kill(ids[1],SIGALRM);
-    pthread_join(ids[0],NULL);
-    pthread_join(ids[1],NULL);
-    return 0;
-}
+    void sig_print(int signo,siginfo_t *info, void *context)
+    {
+        printf("Begin signal Hanlder:\n");
+        psiginfo(info,"The siginfo is:\t");
+        printf("The current thread is 0x%x\n",pthread_self());
+        printf("End signal Hanlder:\n");
+    }
+    void add_sigaction(int signo)
+    {
+        sigset_t set;
+        sigemptyset(&set);
+
+        struct sigaction action;
+        action.sa_sigaction=sig_print;
+        action.sa_flags=SA_SIGINFO;
+        action.sa_mask=set;
+        if(sigaction(signo,&action,NULL)==-1)
+        {
+            printf("set sigaction for signal %s failed!,because %s\n",
+                strsignal(signo),strerror(errno));
+        }else
+        {
+            printf("set sigaction for signal %s successed\n",strsignal(signo));
+        }
+    }
+    int main(void)
+    {
+        pthread_t ids[2];
+        add_sigaction(SIGINT);
+        add_sigaction(SIGALRM);
+        pthread_create(ids,NULL,thread_func,SIGINT);
+        pthread_create(ids+1,NULL,thread_func,SIGALRM);
+        sleep(1);
+        pthread_kill(ids[0],SIGINT);
+        pthread_kill(ids[1],SIGALRM);
+        pthread_join(ids[0],NULL);
+        pthread_join(ids[1],NULL);
+        return 0;
+    }
 	```
 	结果如下。可以看到：
 	- 每个线程都有自己的信号屏蔽字
@@ -1591,21 +1590,21 @@ int main(void)
 
 	我们将`main`修改为：
 
-	```
-int main(void)
-{
-    pthread_t ids[2];
-    add_sigaction(SIGINT);
-    add_sigaction(SIGALRM);
-    pthread_create(ids,NULL,thread_func,SIGINT);
-    pthread_create(ids+1,NULL,thread_func,SIGALRM);
-    sleep(1);
-    pthread_kill(ids[0],SIGALRM);
-    pthread_kill(ids[1],SIGINT);
-    pthread_join(ids[0],NULL);
-    pthread_join(ids[1],NULL);
-    return 0;
-}
+	```c
+    int main(void)
+    {
+        pthread_t ids[2];
+        add_sigaction(SIGINT);
+        add_sigaction(SIGALRM);
+        pthread_create(ids,NULL,thread_func,SIGINT);
+        pthread_create(ids+1,NULL,thread_func,SIGALRM);
+        sleep(1);
+        pthread_kill(ids[0],SIGALRM);
+        pthread_kill(ids[1],SIGINT);
+        pthread_join(ids[0],NULL);
+        pthread_join(ids[1],NULL);
+        return 0;
+    }
 	```
 	结果如下。可以看到：
 	- 信号的处理是进程中所有线程共享
@@ -1613,21 +1612,21 @@ int main(void)
 	
 	我们将`main`修改为：
 
-	```
-int main(void)
-{
-    pthread_t ids[2];
-    add_sigaction(SIGINT);
-    add_sigaction(SIGALRM);
-    pthread_create(ids,NULL,thread_func,SIGINT);
-    pthread_create(ids+1,NULL,thread_func,SIGALRM);
-    sleep(1);
-    kill(0,SIGINT);
-    kill(0,SIGALRM);
-    pthread_join(ids[0],NULL);
-    pthread_join(ids[1],NULL);
-    return 0;
-}
+	```c
+    int main(void)
+    {
+        pthread_t ids[2];
+        add_sigaction(SIGINT);
+        add_sigaction(SIGALRM);
+        pthread_create(ids,NULL,thread_func,SIGINT);
+        pthread_create(ids+1,NULL,thread_func,SIGALRM);
+        sleep(1);
+        kill(0,SIGINT);
+        kill(0,SIGALRM);
+        pthread_join(ids[0],NULL);
+        pthread_join(ids[1],NULL);
+        return 0;
+    }
 	```
 
 	结果如下。可以看到：
@@ -1636,45 +1635,45 @@ int main(void)
 
 9. 示例：
 
-	```
-#include <stdio.h>
-#include<pthread.h>
-#include<string.h>
-#include<signal.h>
-#include<errno.h>
-typedef void * VType;
-VType thread_sig(VType arg)
-{
-    sigset_t mask_set;
-    sigset_t return_set;
-    int num;
-    int ok;
-    sigemptyset(&mask_set);
-    sigemptyset(&return_set);
-    sigaddset(&mask_set,arg);
-    sigaddset(&return_set,arg);
-    pthread_sigmask(SIG_SETMASK,&mask_set,NULL);
-    while(1)
+	```c
+    #include <stdio.h>
+    #include<pthread.h>
+    #include<string.h>
+    #include<signal.h>
+    #include<errno.h>
+    typedef void * VType;
+    VType thread_sig(VType arg)
     {
-        ok=sigwait(&return_set,&num);
-        if(ok!=0) printf("Thread 0x%x,sigait error,because %s\n",pthread_self(),
-			strerror(ok));
-        else
+        sigset_t mask_set;
+        sigset_t return_set;
+        int num;
+        int ok;
+        sigemptyset(&mask_set);
+        sigemptyset(&return_set);
+        sigaddset(&mask_set,arg);
+        sigaddset(&return_set,arg);
+        pthread_sigmask(SIG_SETMASK,&mask_set,NULL);
+        while(1)
         {
-            printf("Thread 0x%x,signal %s catched,num=%d\n",pthread_self(),
-			strsignal(arg),num);
+            ok=sigwait(&return_set,&num);
+            if(ok!=0) printf("Thread 0x%x,sigait error,because %s\n",pthread_self(),
+                strerror(ok));
+            else
+            {
+                printf("Thread 0x%x,signal %s catched,num=%d\n",pthread_self(),
+                strsignal(arg),num);
+            }
         }
     }
-}
-int main(void)
-{
-    pthread_t ids;
-    pthread_create(&ids,NULL,thread_sig,SIGINT);
-    sleep(1);
-    pthread_kill(ids,SIGINT);
-    pthread_join(ids,NULL);
-    return 0;
-}
+    int main(void)
+    {
+        pthread_t ids;
+        pthread_create(&ids,NULL,thread_sig,SIGINT);
+        sleep(1);
+        pthread_kill(ids,SIGINT);
+        pthread_join(ids,NULL);
+        return 0;
+    }
 	```
 	可以看到：
 	- 这里并没有给信号处理函数。`SIGINT`默认行为是终止进程，但是这里并没有终止进程。说明`sigwait`确实	移除了挂起的信号
@@ -1723,53 +1722,53 @@ int main(void)
 
 5. 示例
 
-	```
-#include <stdio.h>
-#include<pthread.h>
-void prepare_1()
-{
-    printf("1:Called when  enter in fork\n");
-}
-void parent_1()
-{
-    printf("1:Called in parent,before return from fork\n");
-}
-void child_1()
-{
-    printf("1:Called in child,before return from fork\n");
-}
-void prepare_2()
-{
-    printf("2:Called when  enter in fork\n");
-}
-void parent_2()
-{
-    printf("2:Called in parent,before return from fork\n");
-}
-void child_2()
-{
-    printf("2:Called in child,before return from fork\n");
-}
-void prepare_3()
-{
-    printf("3:Called when  enter in fork\n");
-}
-void parent_3()
-{
-    printf("3:Called in parent,before return from fork\n");
-}
-void child_3()
-{
-    printf("3:Called in child,before return from fork\n");
-}
-int main(void)
-{
-    pthread_atfork(prepare_1,parent_1,child_1);
-    pthread_atfork(prepare_2,parent_2,child_2);
-    pthread_atfork(prepare_3,parent_3,child_3);
-    fork();
-    return 0;
-}
+	```c
+    #include <stdio.h>
+    #include<pthread.h>
+    void prepare_1()
+    {
+        printf("1:Called when  enter in fork\n");
+    }
+    void parent_1()
+    {
+        printf("1:Called in parent,before return from fork\n");
+    }
+    void child_1()
+    {
+        printf("1:Called in child,before return from fork\n");
+    }
+    void prepare_2()
+    {
+        printf("2:Called when  enter in fork\n");
+    }
+    void parent_2()
+    {
+        printf("2:Called in parent,before return from fork\n");
+    }
+    void child_2()
+    {
+        printf("2:Called in child,before return from fork\n");
+    }
+    void prepare_3()
+    {
+        printf("3:Called when  enter in fork\n");
+    }
+    void parent_3()
+    {
+        printf("3:Called in parent,before return from fork\n");
+    }
+    void child_3()
+    {
+        printf("3:Called in child,before return from fork\n");
+    }
+    int main(void)
+    {
+        pthread_atfork(prepare_1,parent_1,child_1);
+        pthread_atfork(prepare_2,parent_2,child_2);
+        pthread_atfork(prepare_3,parent_3,child_3);
+        fork();
+        return 0;
+    }
 	```
 	可以看到：
 	- `parent`和`child`处理程序是以它们注册时的顺序进行调用的
