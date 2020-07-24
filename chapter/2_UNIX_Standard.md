@@ -5,7 +5,7 @@
 1. ISO C：意图是提供C程序的可移植性，使得它能够适合于大量不同的操作系统。
 	- 该标准不仅定义了C程序设计语言的语法和语义，还定义了标准库
 
-2. POSIX(Portable Operating System Interface): 指的是可移植操作系统接口。该标准的目的是提升应用程序在各种UNIX系统环境之间的可移植性。它定义了“符合POSIX”的操作系统必须提供的各种服务。
+2. IEEE POSIX(Portable Operating System Interface): 指的是可移植操作系统接口。该标准的目的是提升应用程序在各种UNIX系统环境之间的可移植性。它定义了“符合POSIX”的操作系统必须提供的各种服务。
 	- POSIX 包含了 ISO C 标准库函数
 
 3. SUS(Single Unix Specification)：是 POSIX 标准的一个超集，他定义了一些附加接口扩展了 POSIX 规范提供的功能。
