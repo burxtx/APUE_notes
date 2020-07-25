@@ -94,8 +94,7 @@
 
 4. 打开和创建文件的测试。在 `main`函数中调用`test_open_creat()`函数：
 
- ```
-
+ ```c
 void test_open_creat()
 {
     M_TRACE("---------  Begin test_open_creat()  ---------\n");
@@ -150,7 +149,7 @@ void test_open_creat()
 
 1. `lseek`函数：设置打开文件的偏移量
 
- ```
+ ```c
  #include<unistd.h>
  off_t lseek(int fd, off_t offset,int whence);
  ```
@@ -178,7 +177,7 @@ void test_open_creat()
 
 2. `read`函数：读取文件内容
 
- ```
+ ```c
  #include<unistd.h>
  ssize_t read(int fd,void *buf,size_t nbytes);
  ```
@@ -200,7 +199,7 @@ void test_open_creat()
 - 当从某些面向记录的设备（如磁带）中读取时，一次最多返回一条记录
 - 当一个信号造成中断，而已读了部分数据时。
 
-3. `write`函数：想文件写数据
+3. `write`函数：向文件写数据
 
  ```
  #include<unistd.h>
@@ -333,8 +332,7 @@ void test_lseek_read_write()
 
  示例：在 `main`函数中调用 `test_pread_pwrite` 函数：
 
- ```
-
+ ```c
 void test_pread_pwrite()
 {
     M_TRACE("---------  Begin test_pread_pwrite()  ---------\n");
@@ -384,8 +382,7 @@ void test_pread_pwrite()
 
  示例：在 `main`函数中调用`test_dup_dup2`函数:
 
- ```
-
+ ```c
 void test_dup_dup2()
 {
     M_TRACE("---------  Begin test_dup_dup2()  ---------\n");
@@ -458,8 +455,7 @@ void test_dup_dup2()
 
  示例：在 `main`函数中调用`test_fcntl()`函数:
 
- ```
-
+ ```c
 void test_fcntl()
 {
     M_TRACE("---------  Begin test_fcntl()  ---------\n");
